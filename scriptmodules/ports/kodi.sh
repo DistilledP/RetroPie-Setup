@@ -43,8 +43,9 @@ function depends_kodi() {
         fi
     # others
     else
-        md_ret_errors+=("Sorry, but kodi is not installable for your OS/Platform via RetroPie-Setup")
-        return 1
+        # md_ret_errors+=("Sorry, but kodi is not installable for your OS/Platform via RetroPie-Setup")
+        # return 1
+        return 0
     fi
 
     # required for reboot/shutdown options. Don't try and remove if removing dependencies
@@ -54,22 +55,23 @@ function depends_kodi() {
 }
 
 function install_bin_kodi() {
-    # force aptInstall to get a fresh list before installing
-    __apt_update=0
+    return 0
+    # # force aptInstall to get a fresh list before installing
+    # __apt_update=0
 
-    # not all the kodi packages may be available depending on repository
-    # so we will check and install what's available
-    local all_pkgs=(kodi kodi-peripheral-joystick kodi-inputstream-adaptive kodi-vfs-libarchive kodi-vfs-sftp kodi-vfs-nfs)
-    compareVersions "$__os_ubuntu_ver" lt 22.04 && all_pkgs+=(kodi-inputstream-rtmp)
-    local avail_pkgs=()
-    local pkg
-    for pkg in "${all_pkgs[@]}"; do
-        # check if the package is available - we use "madison" rather than "show"
-        # as madison won't show referenced virtual packages which we don't want
-        local ret=$(apt-cache madison "$pkg" 2>/dev/null)
-        [[ -n "$ret" ]] && avail_pkgs+=("$pkg")
-    done
-    aptInstall "${avail_pkgs[@]}"
+    # # not all the kodi packages may be available depending on repository
+    # # so we will check and install what's available
+    # local all_pkgs=(kodi kodi-peripheral-joystick kodi-inputstream-adaptive kodi-vfs-libarchive kodi-vfs-sftp kodi-vfs-nfs)
+    # compareVersions "$__os_ubuntu_ver" lt 22.04 && all_pkgs+=(kodi-inputstream-rtmp)
+    # local avail_pkgs=()
+    # local pkg
+    # for pkg in "${all_pkgs[@]}"; do
+    #     # check if the package is available - we use "madison" rather than "show"
+    #     # as madison won't show referenced virtual packages which we don't want
+    #     local ret=$(apt-cache madison "$pkg" 2>/dev/null)
+    #     [[ -n "$ret" ]] && avail_pkgs+=("$pkg")
+    # done
+    # aptInstall "${avail_pkgs[@]}"
 }
 
 function remove_kodi() {

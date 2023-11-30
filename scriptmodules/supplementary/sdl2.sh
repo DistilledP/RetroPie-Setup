@@ -54,94 +54,100 @@ function _list_depends_sdl2() {
 }
 
 function depends_sdl2() {
-    # install additional packages that are needed, but may be unsuitable as debian package dependencies due to distribution oddities
-    local depends=(devscripts debhelper dh-autoreconf)
+    return 0
+    # # install additional packages that are needed, but may be unsuitable as debian package dependencies due to distribution oddities
+    # local depends=(devscripts debhelper dh-autoreconf)
 
-    isPlatform "mali" && depends+=(mali-fbdev)
-    isPlatform "rpi" && depends+=(libraspberrypi-dev)
-    isPlatform "vero4k" && depends+=(vero3-userland-dev-osmc)
+    # isPlatform "mali" && depends+=(mali-fbdev)
+    # isPlatform "rpi" && depends+=(libraspberrypi-dev)
+    # isPlatform "vero4k" && depends+=(vero3-userland-dev-osmc)
 
-    getDepends $(_list_depends_sdl2) "${depends[@]}"
+    # getDepends $(_list_depends_sdl2) "${depends[@]}"
 }
 
 function sources_sdl2() {
-    local ver="$(get_ver_sdl2)"
-    local pkg_ver="$(get_pkg_ver_sdl2)"
-    local branch="retropie-${ver}"
+    return 0
+    # local ver="$(get_ver_sdl2)"
+    # local pkg_ver="$(get_pkg_ver_sdl2)"
+    # local branch="retropie-${ver}"
 
-    gitPullOrClone "$md_build/$pkg_ver" https://github.com/RetroPie/SDL.git "$branch"
-    cd "$pkg_ver"
-    DEBEMAIL="Jools Wills <buzz@exotica.org.uk>" dch -v "$pkg_ver" "SDL $ver configured for the $__platform"
+    # gitPullOrClone "$md_build/$pkg_ver" https://github.com/RetroPie/SDL.git "$branch"
+    # cd "$pkg_ver"
+    # DEBEMAIL="Jools Wills <buzz@exotica.org.uk>" dch -v "$pkg_ver" "SDL $ver configured for the $__platform"
 }
 
 function build_sdl2() {
-    local conf_flags=()
-    local conf_depends=( $(_list_depends_sdl2) )
+    return 0
 
-    cd "$(get_pkg_ver_sdl2)"
+    # local conf_flags=()
+    # local conf_depends=( $(_list_depends_sdl2) )
 
-    if isPlatform "vero4k"; then
-        # remove harmful (mesa) and un-needed (X11) dependencies from debian package control
-        sed -i '/^\s*lib.*x\|mesa/ d' ./debian/control
-        # disable vulkan and X11 video support
-        conf_flags+=("--disable-video-x11")
-    fi
-    isPlatform "vulkan" && conf_flags+=("--enable-video-vulkan") || conf_flags+=("--disable-video-vulkan")
-    isPlatform "mali" && conf_flags+=("--enable-video-mali" "--disable-video-opengl")
-    isPlatform "rpi" && conf_flags+=("--enable-video-rpi")
-    isPlatform "kms" || isPlatform "rpi" && conf_flags+=("--enable-video-kmsdrm")
+    # cd "$(get_pkg_ver_sdl2)"
 
-    # format debian package dependencies into comma-separated list
-    conf_depends=( "${conf_depends[@]/%/,}" )
+    # if isPlatform "vero4k"; then
+    #     # remove harmful (mesa) and un-needed (X11) dependencies from debian package control
+    #     sed -i '/^\s*lib.*x\|mesa/ d' ./debian/control
+    #     # disable vulkan and X11 video support
+    #     conf_flags+=("--disable-video-x11")
+    # fi
+    # isPlatform "vulkan" && conf_flags+=("--enable-video-vulkan") || conf_flags+=("--disable-video-vulkan")
+    # isPlatform "mali" && conf_flags+=("--enable-video-mali" "--disable-video-opengl")
+    # isPlatform "rpi" && conf_flags+=("--enable-video-rpi")
+    # isPlatform "kms" || isPlatform "rpi" && conf_flags+=("--enable-video-kmsdrm")
 
-    sed -i 's/libgl1-mesa-dev,/libgl1-mesa-dev, '"${conf_depends[*]}"'/' ./debian/control
-    sed -i 's/confflags =/confflags = '"${conf_flags[*]}"' \\\n/' ./debian/rules
+    # # format debian package dependencies into comma-separated list
+    # conf_depends=( "${conf_depends[@]/%/,}" )
 
-    if isPlatform "rpi" && [[ -d "/opt/vc/include" ]]; then
-        # move proprietary videocore headers
-        sed -i -e 's/\"EGL/\"brcmEGL/g' -e 's/\"GLES/\"brcmGLES/g' ./src/video/raspberry/SDL_rpivideo.h
-        sed -i -e 's#<EGL/eglplatform#<brcmEGL/eglplatform#g' configure
-        mv /opt/vc/include/EGL /opt/vc/include/brcmEGL
-        mv /opt/vc/include/GLES /opt/vc/include/brcmGLES
-        mv /opt/vc/include/GLES2 /opt/vc/include/brcmGLES2
-    fi
+    # sed -i 's/libgl1-mesa-dev,/libgl1-mesa-dev, '"${conf_depends[*]}"'/' ./debian/control
+    # sed -i 's/confflags =/confflags = '"${conf_flags[*]}"' \\\n/' ./debian/rules
 
-    # using the videocore pkgconfig will cause unwanted linkage, so disable it!
-    PKG_CONFIG_PATH= dpkg-buildpackage -b
+    # if isPlatform "rpi" && [[ -d "/opt/vc/include" ]]; then
+    #     # move proprietary videocore headers
+    #     sed -i -e 's/\"EGL/\"brcmEGL/g' -e 's/\"GLES/\"brcmGLES/g' ./src/video/raspberry/SDL_rpivideo.h
+    #     sed -i -e 's#<EGL/eglplatform#<brcmEGL/eglplatform#g' configure
+    #     mv /opt/vc/include/EGL /opt/vc/include/brcmEGL
+    #     mv /opt/vc/include/GLES /opt/vc/include/brcmGLES
+    #     mv /opt/vc/include/GLES2 /opt/vc/include/brcmGLES2
+    # fi
 
-    if isPlatform "rpi" && [[ -d "/opt/vc/include" ]]; then
-        # restore proprietary headers
-        mv /opt/vc/include/brcmEGL /opt/vc/include/EGL
-        mv /opt/vc/include/brcmGLES /opt/vc/include/GLES
-        mv /opt/vc/include/brcmGLES2 /opt/vc/include/GLES2
-    fi
+    # # using the videocore pkgconfig will cause unwanted linkage, so disable it!
+    # PKG_CONFIG_PATH= dpkg-buildpackage -b
 
-    md_ret_require="$md_build/libsdl2-dev_$(get_pkg_ver_sdl2)_$(get_arch_sdl2).deb"
-    local dest="$__tmpdir/archives/$__binary_path"
-    mkdir -p "$dest"
+    # if isPlatform "rpi" && [[ -d "/opt/vc/include" ]]; then
+    #     # restore proprietary headers
+    #     mv /opt/vc/include/brcmEGL /opt/vc/include/EGL
+    #     mv /opt/vc/include/brcmGLES /opt/vc/include/GLES
+    #     mv /opt/vc/include/brcmGLES2 /opt/vc/include/GLES2
+    # fi
 
-    local file
-    for file in ../*.deb; do
-        if gpg --list-secret-keys "$__gpg_signing_key" &>/dev/null; then
-            signFile "$file" || return 1
-            cp "${file}.asc" "$dest/"
-        fi
-        cp ../*.deb "$dest/"
-    done
+    # md_ret_require="$md_build/libsdl2-dev_$(get_pkg_ver_sdl2)_$(get_arch_sdl2).deb"
+    # local dest="$__tmpdir/archives/$__binary_path"
+    # mkdir -p "$dest"
+
+    # local file
+    # for file in ../*.deb; do
+    #     if gpg --list-secret-keys "$__gpg_signing_key" &>/dev/null; then
+    #         signFile "$file" || return 1
+    #         cp "${file}.asc" "$dest/"
+    #     fi
+    #     cp ../*.deb "$dest/"
+    # done
 }
 
 function remove_old_sdl2() {
+    return 0
     # remove our old libsdl2 packages
-    hasPackage libsdl2 && dpkg --remove libsdl2 libsdl2-dev
+    # hasPackage libsdl2 && dpkg --remove libsdl2 libsdl2-dev
 }
 
 function install_sdl2() {
-    remove_old_sdl2
-    # if the packages don't install completely due to missing dependencies the apt-get -y -f install will correct it
-    if ! dpkg -i libsdl2-2.0-0_$(get_pkg_ver_sdl2)_$(get_arch_sdl2).deb libsdl2-dev_$(get_pkg_ver_sdl2)_$(get_arch_sdl2).deb; then
-        apt-get -y -f --no-install-recommends install
-    fi
-    echo "libsdl2-dev hold" | dpkg --set-selections
+    return 0
+    # remove_old_sdl2
+    # # if the packages don't install completely due to missing dependencies the apt-get -y -f install will correct it
+    # if ! dpkg -i libsdl2-2.0-0_$(get_pkg_ver_sdl2)_$(get_arch_sdl2).deb libsdl2-dev_$(get_pkg_ver_sdl2)_$(get_arch_sdl2).deb; then
+    #     apt-get -y -f --no-install-recommends install
+    # fi
+    # echo "libsdl2-dev hold" | dpkg --set-selections
 }
 
 function __binary_url_sdl2() {
@@ -149,28 +155,31 @@ function __binary_url_sdl2() {
 }
 
 function install_bin_sdl2() {
-    local tmp="$(mktemp -d)"
-    pushd "$tmp" >/dev/null
-    local ret=1
-    if downloadAndVerify "$__binary_url/libsdl2-dev_$(get_pkg_ver_sdl2)_armhf.deb" && \
-       downloadAndVerify "$__binary_url/libsdl2-2.0-0_$(get_pkg_ver_sdl2)_armhf.deb"; then
-        install_sdl2
-        ret=0
-    fi
-    popd >/dev/null
-    rm -rf "$tmp"
-    return "$ret"
+    return 0
+    # local tmp="$(mktemp -d)"
+    # pushd "$tmp" >/dev/null
+    # local ret=1
+    # if downloadAndVerify "$__binary_url/libsdl2-dev_$(get_pkg_ver_sdl2)_armhf.deb" && \
+    #    downloadAndVerify "$__binary_url/libsdl2-2.0-0_$(get_pkg_ver_sdl2)_armhf.deb"; then
+    #     install_sdl2
+    #     ret=0
+    # fi
+    # popd >/dev/null
+    # rm -rf "$tmp"
+    # return "$ret"
 }
 
 function revert_sdl2() {
-    aptUpdate
-    local packaged="$(apt-cache madison libsdl2-dev | cut -d" " -f3 | head -n1)"
-    if ! aptInstall --allow-downgrades --allow-change-held-packages libsdl2-2.0-0="$packaged" libsdl2-dev="$packaged"; then
-        md_ret_errors+=("Failed to revert to OS packaged sdl2 versions")
-    fi
+    return 0
+    # aptUpdate
+    # local packaged="$(apt-cache madison libsdl2-dev | cut -d" " -f3 | head -n1)"
+    # if ! aptInstall --allow-downgrades --allow-change-held-packages libsdl2-2.0-0="$packaged" libsdl2-dev="$packaged"; then
+    #     md_ret_errors+=("Failed to revert to OS packaged sdl2 versions")
+    # fi
 }
 
 function remove_sdl2() {
-    apt-get remove -y --allow-change-held-packages libsdl2-dev libsdl2-2.0-0
-    apt-get autoremove -y
+    return 0
+    # apt-get remove -y --allow-change-held-packages libsdl2-dev libsdl2-2.0-0
+    # apt-get autoremove -y
 }
